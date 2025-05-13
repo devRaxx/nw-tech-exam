@@ -69,12 +69,23 @@ export default function HomePage() {
 
     if (activeFilter === "recent") {
       filtered.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-    } else {
+    } else if (activeFilter === "popular") {
       filtered.sort((a, b) => b.likes_count - a.likes_count);
+    } else if (activeFilter === "my-posts" && user) {
+      filtered = filtered.filter((post) => {
+        console.log(
+          "Comparing post.author_id:",
+          post.author_id,
+          "with user.id:",
+          user.id
+        );
+        return post.author_id === user.id;
+      });
+      console.log("Filtered my posts:", filtered);
     }
 
     setFilteredPosts(filtered);
-  }, [posts, searchQuery, activeFilter]);
+  }, [posts, searchQuery, activeFilter, user]);
 
   const handleCreatePost = async (postData) => {
     try {
@@ -105,6 +116,7 @@ export default function HomePage() {
           <FilterBar
             activeFilter={activeFilter}
             onFilterChange={setActiveFilter}
+            user={user}
           />
 
           {user && (

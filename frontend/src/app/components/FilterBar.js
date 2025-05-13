@@ -1,6 +1,6 @@
 "use client";
 
-export default function FilterBar({ activeFilter, onFilterChange }) {
+export default function FilterBar({ activeFilter, onFilterChange, user }) {
   return (
     <div className="flex space-x-4 mb-6">
       <button
@@ -23,6 +23,18 @@ export default function FilterBar({ activeFilter, onFilterChange }) {
       >
         Most Popular
       </button>
+      {user && (
+        <button
+          onClick={() => onFilterChange("my-posts")}
+          className={`px-4 py-2 rounded-md text-sm font-medium ${
+            activeFilter === "my-posts"
+              ? "bg-gray-900 text-white"
+              : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+          }`}
+        >
+          My Posts
+        </button>
+      )}
     </div>
   );
 }
