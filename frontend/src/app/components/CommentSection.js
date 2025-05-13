@@ -12,6 +12,7 @@ const CommentItem = memo(
     replyContent,
     onReplySubmit,
     onReplyCancel,
+    onReplyContentChange,
   }) => (
     <div className="border-l-2 border-gray-200 pl-4 mb-4">
       <div className="flex items-center mb-2">
