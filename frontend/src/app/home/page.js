@@ -57,8 +57,33 @@ export default function HomePage() {
       });
       const data = await response.json();
       console.log("Fetched posts:", data);
-      setPosts(Array.isArray(data) ? data : []);
-      setFilteredPosts(Array.isArray(data) ? data : []);
+
+      const postsWithComments = await Promise.all(
+        (Array.isArray(data) ? data : []).map(async (post) => {
+          try {
+            const commentsResponse = await fetch(
+              `/api/comments/post/${post.id}`,
+              {
+                headers: token ? { Authorization: `Bearer ${token}` } : {},
+              }
+            );
+            if (commentsResponse.ok) {
+              const comments = await commentsResponse.json();
+              return { ...post, comments };
+            }
+            return { ...post, comments: [] };
+          } catch (error) {
+            console.error(
+              `Error fetching comments for post ${post.id}:`,
+              error
+            );
+            return { ...post, comments: [] };
+          }
+        })
+      );
+
+      setPosts(postsWithComments);
+      setFilteredPosts(postsWithComments);
     } catch (error) {
       console.error("Error fetching posts:", error);
     } finally {

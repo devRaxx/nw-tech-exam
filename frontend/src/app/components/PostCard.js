@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import CommentSection from "./CommentSection";
 import DeleteConfirmationModal from "./DeleteConfirmationModal";
@@ -14,7 +14,7 @@ export default function PostCard({ post, onLike, currentUser }) {
   const [showComments, setShowComments] = useState(false);
   const [hasFetchedComments, setHasFetchedComments] = useState(false);
   const [isLoadingComments, setIsLoadingComments] = useState(false);
-  const [comments, setComments] = useState([]);
+  const [comments, setComments] = useState(post.comments || []);
   const [isEditing, setIsEditing] = useState(false);
   const [editedTitle, setEditedTitle] = useState(post.title);
   const [editedBody, setEditedBody] = useState(post.body);

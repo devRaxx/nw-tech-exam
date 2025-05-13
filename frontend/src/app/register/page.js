@@ -53,7 +53,6 @@ export default function Register() {
       ...prev,
       [name]: value,
     }));
-    // Clear validation error when user starts typing
     if (validationErrors[name]) {
       setValidationErrors((prev) => ({
         ...prev,

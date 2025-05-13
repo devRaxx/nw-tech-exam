@@ -1,10 +1,13 @@
 import { NextResponse } from "next/server";
 
-export async function GET(request, { params }) {
+export async function GET(request, context) {
   try {
+    const params = await context.params;
+    const postId = params.id;
+
     const token = request.headers.get("authorization")?.split(" ")[1];
     const response = await fetch(
-      `http://localhost:8000/api/v1/comments/post/${params.id}`,
+      `http://localhost:8000/api/v1/comments/post/${postId}`,
       {
         headers: token ? { Authorization: `Bearer ${token}` } : {},
       }
@@ -28,8 +31,11 @@ export async function GET(request, { params }) {
   }
 }
 
-export async function POST(request, { params }) {
+export async function POST(request, context) {
   try {
+    const params = await context.params;
+    const postId = params.id;
+
     const token = request.headers.get("authorization")?.split(" ")[1];
 
     if (!token) {
@@ -41,7 +47,7 @@ export async function POST(request, { params }) {
 
     const body = await request.json();
     const response = await fetch(
-      `http://localhost:8000/api/v1/comments/post/${params.id}`,
+      `http://localhost:8000/api/v1/comments/post/${postId}`,
       {
         method: "POST",
         headers: {
