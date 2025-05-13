@@ -1,10 +1,12 @@
 "use client";
 
 import { useState, useCallback, useMemo } from "react";
+import { useRouter } from "next/navigation";
 import CommentSection from "./CommentSection";
 import DeleteConfirmationModal from "./DeleteConfirmationModal";
 
 export default function PostCard({ post, onLike, currentUser }) {
+  const router = useRouter();
   const [isLiked, setIsLiked] = useState(post.is_liked);
   const [isDisliked, setIsDisliked] = useState(post.is_disliked);
   const [likesCount, setLikesCount] = useState(post.likes_count);
@@ -30,7 +32,19 @@ export default function PostCard({ post, onLike, currentUser }) {
     return currentUser.id === post.author.id;
   }, [currentUser, post.author.id]);
 
+  const handleAuthAction = useCallback(
+    (action) => {
+      if (!token) {
+        router.push("/login");
+        return false;
+      }
+      return true;
+    },
+    [token, router]
+  );
+
   const handleUpdate = useCallback(async () => {
+    if (!handleAuthAction("edit")) return;
     if (!editedTitle.trim() || !editedBody.trim()) return;
 
     setIsUpdating(true);
@@ -61,9 +75,11 @@ export default function PostCard({ post, onLike, currentUser }) {
     } finally {
       setIsUpdating(false);
     }
-  }, [editedTitle, editedBody, post, token]);
+  }, [editedTitle, editedBody, post, token, handleAuthAction]);
 
   const handleLike = useCallback(async () => {
+    if (!handleAuthAction("like")) return;
+
     const prevLiked = isLiked;
     const prevDisliked = isDisliked;
 
@@ -91,9 +107,20 @@ export default function PostCard({ post, onLike, currentUser }) {
     } finally {
       if (onLike) onLike();
     }
-  }, [isLiked, isDisliked, likesCount, dislikesCount, post.id, token, onLike]);
+  }, [
+    isLiked,
+    isDisliked,
+    likesCount,
+    dislikesCount,
+    post.id,
+    token,
+    onLike,
+    handleAuthAction,
+  ]);
 
   const handleDislike = useCallback(async () => {
+    if (!handleAuthAction("dislike")) return;
+
     const prevDisliked = isDisliked;
     const prevLiked = isLiked;
 
@@ -121,9 +148,20 @@ export default function PostCard({ post, onLike, currentUser }) {
     } finally {
       if (onLike) onLike();
     }
-  }, [isDisliked, isLiked, dislikesCount, likesCount, post.id, token, onLike]);
+  }, [
+    isDisliked,
+    isLiked,
+    dislikesCount,
+    likesCount,
+    post.id,
+    token,
+    onLike,
+    handleAuthAction,
+  ]);
 
   const toggleComments = useCallback(async () => {
+    if (!handleAuthAction("comment")) return;
+
     if (!showComments && !hasFetchedComments) {
       setIsLoadingComments(true);
       try {
@@ -144,9 +182,11 @@ export default function PostCard({ post, onLike, currentUser }) {
       }
     }
     setShowComments((prev) => !prev);
-  }, [showComments, hasFetchedComments, post.id, token]);
+  }, [showComments, hasFetchedComments, post.id, token, handleAuthAction]);
 
   const handleDelete = useCallback(async () => {
+    if (!handleAuthAction("delete")) return;
+
     try {
       const response = await fetch(`/api/posts/${post.id}`, {
         method: "DELETE",
@@ -166,7 +206,7 @@ export default function PostCard({ post, onLike, currentUser }) {
       console.error("Error deleting post:", error);
       alert("An error occurred while deleting the post.");
     }
-  }, [post.id, token, onLike]);
+  }, [post.id, token, onLike, handleAuthAction]);
 
   const formattedDate = useMemo(() => {
     const date = new Date(post.created_at);
@@ -290,10 +330,9 @@ export default function PostCard({ post, onLike, currentUser }) {
       <div className="flex items-center space-x-4">
         <button
           onClick={handleLike}
-          disabled={!token}
           className={`flex items-center space-x-1 ${
             isLiked ? "text-red-500" : "text-gray-500 hover:text-red-500"
-          } ${token ? "" : "opacity-50 cursor-not-allowed"}`}
+          }`}
         >
           <svg
             className="h-5 w-5"
@@ -313,10 +352,9 @@ export default function PostCard({ post, onLike, currentUser }) {
 
         <button
           onClick={handleDislike}
-          disabled={!token}
           className={`flex items-center space-x-1 ${
             isDisliked ? "text-blue-500" : "text-gray-500 hover:text-blue-500"
-          } ${token ? "" : "opacity-50 cursor-not-allowed"}`}
+          }`}
         >
           <svg
             className="h-5 w-5"
@@ -336,10 +374,7 @@ export default function PostCard({ post, onLike, currentUser }) {
 
         <button
           onClick={toggleComments}
-          disabled={!token}
-          className={`flex items-center space-x-1 text-gray-500 hover:text-gray-700 ${
-            !token ? "opacity-50 cursor-not-allowed" : ""
-          }`}
+          className="flex items-center space-x-1 text-gray-500 hover:text-gray-700"
         >
           <svg
             className="h-5 w-5"
@@ -358,7 +393,7 @@ export default function PostCard({ post, onLike, currentUser }) {
         </button>
       </div>
 
-      {showComments && token && (
+      {showComments && (
         <div className="mt-4">
           {isLoadingComments ? (
             <p className="text-sm text-gray-500">Loading comments...</p>
