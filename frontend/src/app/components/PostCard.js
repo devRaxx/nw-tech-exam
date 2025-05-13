@@ -238,11 +238,9 @@ export default function PostCard({ post, onLike }) {
         </div>
       ) : (
         <>
-          <Link href={`/posts/${post.id}`}>
-            <h2 className="text-2xl font-bold text-gray-900 mb-2 hover:text-gray-700">
-              {post.title}
-            </h2>
-          </Link>
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">
+            {post.title}
+          </h2>
 
           <p className="text-gray-600 mb-4 line-clamp-3">{post.body}</p>
         </>
