@@ -48,7 +48,6 @@ logs/
 # Alembic
 alembic.ini
 
-# CSV files (if you want to ignore them)
 *.csv
 
 # Coverage reports

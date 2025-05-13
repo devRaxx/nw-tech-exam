@@ -1,2 +1,2 @@
 username,password,is_active,is_superuser
-bob5,bob5password,bob5 Example,True,False 
+pedro,123,True,False
