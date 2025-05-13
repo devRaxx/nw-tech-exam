@@ -100,17 +100,47 @@ npm run dev
 
 3. Seeding Data
 
-- place users.csv and posts.csv in backend/app/scripts
+To seed the database with initial data:
 
-- run the following command
+1. Prepare your CSV files:
+
+   - Place `users.csv` and `posts.csv` in the `backend/app/scripts` directory
+   - Ensure your CSV files have the correct column headers matching your database schema
+
+2. Run the seeding script:
 
 ```bash
 cd backend
-pip3 install -r requirements.txt
-python3 seed_from_csv.py
+# Activate virtual environment if not already activated
+source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+
+# Install requirements if not already installed
+pip install -r requirements.txt
+
+# Run the seeding script
+python seed_from_csv.py
 ```
 
+Note: Make sure your database is properly migrated before seeding data.
+
 4. Migrating Data
+
+To run database migrations using Alembic:
+
+```bash
+cd backend
+# Create a new migration
+alembic revision --autogenerate -m "description of changes"
+
+# Apply migrations
+alembic upgrade head
+
+# To rollback one migration
+alembic downgrade -1
+
+# To rollback all migrations
+alembic downgrade base
+```
 
 The application will be available at:
 
