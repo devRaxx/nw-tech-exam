@@ -47,14 +47,7 @@ A full-stack web application built with FastAPI, PostgreSQL(deployed in [NeonDB]
 
 ## 🔧 Installation
 
-1. Clone the repository
-
-```bash
-git clone https://github.com/yourusername/nw-tech-exam.git
-cd nw-tech-exam
-```
-
-2. Backend Setup
+1. Backend Setup
 
 ```bash
 cd backend
@@ -63,7 +56,7 @@ source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-3. Frontend Setup
+2. Frontend Setup
 
 ```bash
 cd frontend
