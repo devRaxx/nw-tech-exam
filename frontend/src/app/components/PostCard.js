@@ -1,10 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useCallback, useMemo } from "react";
 import CommentSection from "./CommentSection";
 import DeleteConfirmationModal from "./DeleteConfirmationModal";
 
-export default function PostCard({ post, onLike }) {
+export default function PostCard({ post, onLike, currentUser }) {
   const [isLiked, setIsLiked] = useState(post.is_liked);
   const [isDisliked, setIsDisliked] = useState(post.is_disliked);
   const [likesCount, setLikesCount] = useState(post.likes_count);
@@ -13,34 +13,24 @@ export default function PostCard({ post, onLike }) {
   const [hasFetchedComments, setHasFetchedComments] = useState(false);
   const [isLoadingComments, setIsLoadingComments] = useState(false);
   const [comments, setComments] = useState([]);
-  const [currentUser, setCurrentUser] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
   const [editedTitle, setEditedTitle] = useState(post.title);
   const [editedBody, setEditedBody] = useState(post.body);
   const [isUpdating, setIsUpdating] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
-  const token =
-    typeof window !== "undefined" ? localStorage.getItem("token") : null;
+  const token = useMemo(
+    () =>
+      typeof window !== "undefined" ? localStorage.getItem("token") : null,
+    []
+  );
 
-  useEffect(() => {
-    if (token) {
-      fetch("/api/auth/me", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      })
-        .then((res) => res.json())
-        .then((data) => setCurrentUser(data))
-        .catch((error) => {
-          console.error("Error fetching user data:", error);
-          localStorage.removeItem("token");
-          setCurrentUser(null);
-        });
-    }
-  }, [token]);
+  const canEdit = useMemo(() => {
+    if (!currentUser) return false;
+    return currentUser.id === post.author.id;
+  }, [currentUser, post.author.id]);
 
-  const handleUpdate = async () => {
+  const handleUpdate = useCallback(async () => {
     if (!editedTitle.trim() || !editedBody.trim()) return;
 
     setIsUpdating(true);
@@ -71,9 +61,9 @@ export default function PostCard({ post, onLike }) {
     } finally {
       setIsUpdating(false);
     }
-  };
+  }, [editedTitle, editedBody, post, token]);
 
-  const handleLike = async () => {
+  const handleLike = useCallback(async () => {
     const prevLiked = isLiked;
     const prevDisliked = isDisliked;
 
@@ -101,9 +91,9 @@ export default function PostCard({ post, onLike }) {
     } finally {
       if (onLike) onLike();
     }
-  };
+  }, [isLiked, isDisliked, likesCount, dislikesCount, post.id, token, onLike]);
 
-  const handleDislike = async () => {
+  const handleDislike = useCallback(async () => {
     const prevDisliked = isDisliked;
     const prevLiked = isLiked;
 
@@ -131,9 +121,9 @@ export default function PostCard({ post, onLike }) {
     } finally {
       if (onLike) onLike();
     }
-  };
+  }, [isDisliked, isLiked, dislikesCount, likesCount, post.id, token, onLike]);
 
-  const toggleComments = async () => {
+  const toggleComments = useCallback(async () => {
     if (!showComments && !hasFetchedComments) {
       setIsLoadingComments(true);
       try {
@@ -154,9 +144,9 @@ export default function PostCard({ post, onLike }) {
       }
     }
     setShowComments((prev) => !prev);
-  };
+  }, [showComments, hasFetchedComments, post.id, token]);
 
-  const handleDelete = async () => {
+  const handleDelete = useCallback(async () => {
     try {
       const response = await fetch(`/api/posts/${post.id}`, {
         method: "DELETE",
@@ -176,7 +166,21 @@ export default function PostCard({ post, onLike }) {
       console.error("Error deleting post:", error);
       alert("An error occurred while deleting the post.");
     }
-  };
+  }, [post.id, token, onLike]);
+
+  const formattedDate = useMemo(() => {
+    const date = new Date(post.created_at);
+    return {
+      date: date.toLocaleDateString(),
+      time: new Date(date.getTime() + 8 * 60 * 60 * 1000).toLocaleTimeString(
+        [],
+        {
+          hour: "numeric",
+          minute: "2-digit",
+        }
+      ),
+    };
+  }, [post.created_at]);
 
   return (
     <article className="border-b border-gray-200 py-8">
@@ -185,17 +189,10 @@ export default function PostCard({ post, onLike }) {
           <span className="text-sm text-gray-500">{post.author.username}</span>
           <span className="mx-2 text-gray-300">•</span>
           <span className="text-sm text-gray-500">
-            {new Date(post.created_at).toLocaleDateString()} at{" "}
-            {/* My Manual Implementation of Timezone */}
-            {new Date(
-              new Date(post.created_at).getTime() + 8 * 60 * 60 * 1000
-            ).toLocaleTimeString([], {
-              hour: "numeric",
-              minute: "2-digit",
-            })}
+            {formattedDate.date} at {formattedDate.time}
           </span>
         </div>
-        {currentUser && currentUser.id === post.author.id && (
+        {canEdit && (
           <div className="flex space-x-2">
             <button
               onClick={() => setIsEditing(!isEditing)}

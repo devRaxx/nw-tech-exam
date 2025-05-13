@@ -12,14 +12,35 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [validationErrors, setValidationErrors] = useState({});
+
+  const validateForm = () => {
+    const errors = {};
+    if (!username.trim()) {
+      errors.username = "Username is required";
+    }
+    if (!password) {
+      errors.password = "Password is required";
+    }
+    setValidationErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
+    setValidationErrors({});
+
+    if (!validateForm()) {
+      return;
+    }
+
+    setIsLoading(true);
 
     try {
       const formData = new FormData();
-      formData.append("username", username);
+      formData.append("username", username.trim());
       formData.append("password", password);
 
       const response = await fetch("/api/auth/login", {
@@ -27,8 +48,9 @@ export default function Login() {
         body: formData,
       });
 
+      const data = await response.json();
+
       if (response.ok) {
-        const data = await response.json();
         localStorage.setItem("token", data.access_token);
         Cookies.set("token", data.access_token, {
           expires: 30,
@@ -38,11 +60,12 @@ export default function Login() {
         });
         router.push("/");
       } else {
-        const error = await response.json();
-        setError(error.detail || "Login failed");
+        setError(data.detail || "Login failed. Please check your credentials.");
       }
     } catch (error) {
-      setError("An error occurred. Please try again.");
+      setError("Network error. Please check your connection and try again.");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -79,8 +102,15 @@ export default function Login() {
                   required
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  className="appearance-none block w-full px-3 py-2 border text-black border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-gray-500 focus:border-gray-500"
+                  className={`appearance-none block w-full px-3 py-2 border text-black border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-gray-500 focus:border-gray-500 ${
+                    validationErrors.username ? "border-red-500" : ""
+                  }`}
                 />
+                {validationErrors.username && (
+                  <p className="mt-1 text-sm text-red-600">
+                    {validationErrors.username}
+                  </p>
+                )}
               </div>
             </div>
 
@@ -100,7 +130,9 @@ export default function Login() {
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="text-black appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-gray-500 focus:border-gray-500 pr-10"
+                  className={`text-black appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-gray-500 focus:border-gray-500 pr-10 ${
+                    validationErrors.password ? "border-red-500" : ""
+                  }`}
                 />
                 <button
                   type="button"
@@ -110,15 +142,23 @@ export default function Login() {
                 >
                   {showPassword ? <IoIosEye /> : <IoIosEyeOff />}
                 </button>
+                {validationErrors.password && (
+                  <p className="mt-1 text-sm text-red-600">
+                    {validationErrors.password}
+                  </p>
+                )}
               </div>
             </div>
 
             <div>
               <button
                 type="submit"
-                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-gray-900 hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+                disabled={isLoading}
+                className={`w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-gray-900 hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 ${
+                  isLoading ? "opacity-50 cursor-not-allowed" : ""
+                }`}
               >
-                Sign in
+                {isLoading ? "Signing in..." : "Sign in"}
               </button>
             </div>
           </form>

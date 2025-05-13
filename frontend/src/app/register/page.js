@@ -14,6 +14,38 @@ export default function Register() {
   });
   const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [validationErrors, setValidationErrors] = useState({});
+
+  const validateForm = () => {
+    const errors = {};
+    const username = formData.username.trim();
+    const password = formData.password;
+
+    if (!username) {
+      errors.username = "Username is required";
+    } else if (username.length < 3) {
+      errors.username = "Username must be at least 3 characters long";
+    } else if (!/^[a-zA-Z0-9_]+$/.test(username)) {
+      errors.username =
+        "Username can only contain letters, numbers, and underscores";
+    }
+
+    if (!password) {
+      errors.password = "Password is required";
+    } else if (password.length < 8) {
+      errors.password = "Password must be at least 8 characters long";
+    } else if (!/(?=.*[a-z])/.test(password)) {
+      errors.password = "Password must contain at least one lowercase letter";
+    } else if (!/(?=.*[A-Z])/.test(password)) {
+      errors.password = "Password must contain at least one uppercase letter";
+    } else if (!/(?=.*\d)/.test(password)) {
+      errors.password = "Password must contain at least one number";
+    }
+
+    setValidationErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -21,11 +53,25 @@ export default function Register() {
       ...prev,
       [name]: value,
     }));
+    // Clear validation error when user starts typing
+    if (validationErrors[name]) {
+      setValidationErrors((prev) => ({
+        ...prev,
+        [name]: "",
+      }));
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
+    setValidationErrors({});
+
+    if (!validateForm()) {
+      return;
+    }
+
+    setIsLoading(true);
 
     try {
       const response = await fetch("/api/auth/register", {
@@ -33,18 +79,23 @@ export default function Register() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          username: formData.username.trim(),
+          password: formData.password,
+        }),
       });
 
       const registerData = await response.json();
 
       if (!response.ok) {
-        setError(registerData.detail || "Registration failed");
+        setError(
+          registerData.detail || "Registration failed. Please try again."
+        );
         return;
       }
 
       const loginFormData = new FormData();
-      loginFormData.append("username", formData.username);
+      loginFormData.append("username", formData.username.trim());
       loginFormData.append("password", formData.password);
 
       const loginResponse = await fetch("/api/auth/login", {
@@ -56,7 +107,8 @@ export default function Register() {
 
       if (!loginResponse.ok) {
         setError(
-          loginData.detail || "Automatic login failed after registration"
+          loginData.detail ||
+            "Registration successful but automatic login failed. Please try logging in manually."
         );
         return;
       }
@@ -71,7 +123,9 @@ export default function Register() {
       router.push("/");
     } catch (error) {
       console.error("Registration error:", error);
-      setError("An error occurred. Please try again.");
+      setError("Network error. Please check your connection and try again.");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -107,8 +161,15 @@ export default function Register() {
                   required
                   value={formData.username}
                   onChange={handleChange}
-                  className="text-black appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-gray-500 focus:border-gray-500"
+                  className={`text-black appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-gray-500 focus:border-gray-500 ${
+                    validationErrors.username ? "border-red-500" : ""
+                  }`}
                 />
+                {validationErrors.username && (
+                  <p className="mt-1 text-sm text-red-600">
+                    {validationErrors.username}
+                  </p>
+                )}
               </div>
             </div>
 
@@ -128,7 +189,9 @@ export default function Register() {
                   required
                   value={formData.password}
                   onChange={handleChange}
-                  className="text-black appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-gray-500 focus:border-gray-500 pr-10"
+                  className={`text-black appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-gray-500 focus:border-gray-500 pr-10 ${
+                    validationErrors.password ? "border-red-500" : ""
+                  }`}
                 />
                 <button
                   type="button"
@@ -138,15 +201,27 @@ export default function Register() {
                 >
                   {showPassword ? <IoIosEye /> : <IoIosEyeOff />}
                 </button>
+                {validationErrors.password && (
+                  <p className="mt-1 text-sm text-red-600">
+                    {validationErrors.password}
+                  </p>
+                )}
+              </div>
+              <div className="mt-2 text-sm text-gray-500">
+                Password must be at least 8 characters long and contain
+                uppercase, lowercase, and numbers.
               </div>
             </div>
 
             <div>
               <button
                 type="submit"
-                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-gray-900 hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+                disabled={isLoading}
+                className={`w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-gray-900 hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 ${
+                  isLoading ? "opacity-50 cursor-not-allowed" : ""
+                }`}
               >
-                Register
+                {isLoading ? "Creating account..." : "Register"}
               </button>
             </div>
           </form>

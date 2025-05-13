@@ -133,7 +133,12 @@ export default function HomePage() {
 
         <div className="space-y-8">
           {filteredPosts.map((post) => (
-            <PostCard key={post.id} post={post} onLike={fetchPosts} />
+            <PostCard
+              key={post.id}
+              post={post}
+              onLike={fetchPosts}
+              currentUser={user}
+            />
           ))}
         </div>
       </div>
