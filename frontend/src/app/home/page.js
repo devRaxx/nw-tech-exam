@@ -16,6 +16,7 @@ export default function HomePage() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -42,8 +43,13 @@ export default function HomePage() {
     fetchPosts();
   }, []);
 
-  const fetchPosts = async () => {
-    setIsLoading(true);
+  const fetchPosts = async (isReaction = false) => {
+    if (isReaction) {
+      setIsRefreshing(true);
+    } else {
+      setIsLoading(true);
+    }
+
     try {
       const token = localStorage.getItem("token");
       const response = await fetch("/api/posts", {
@@ -56,7 +62,11 @@ export default function HomePage() {
     } catch (error) {
       console.error("Error fetching posts:", error);
     } finally {
-      setIsLoading(false);
+      if (isReaction) {
+        setIsRefreshing(false);
+      } else {
+        setIsLoading(false);
+      }
     }
   };
 
@@ -148,7 +158,7 @@ export default function HomePage() {
               <PostCard
                 key={post.id}
                 post={post}
-                onLike={fetchPosts}
+                onLike={() => fetchPosts(true)}
                 currentUser={user}
               />
             ))

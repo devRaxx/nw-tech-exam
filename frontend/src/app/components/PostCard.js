@@ -101,6 +101,7 @@ export default function PostCard({ post, onLike, currentUser }) {
         setIsDisliked(prevDisliked);
         setLikesCount((prev) => (prevLiked ? prev + 1 : prev - 1));
         setDislikesCount((prev) => (prevDisliked ? prev + 1 : prev - 1));
+        throw new Error("Failed to like post");
       }
     } catch (error) {
       console.error("Error liking post:", error);
@@ -142,6 +143,7 @@ export default function PostCard({ post, onLike, currentUser }) {
         setIsLiked(prevLiked);
         setDislikesCount((prev) => (prevDisliked ? prev + 1 : prev - 1));
         setLikesCount((prev) => (prevLiked ? prev + 1 : prev - 1));
+        throw new Error("Failed to dislike post");
       }
     } catch (error) {
       console.error("Error disliking post:", error);
