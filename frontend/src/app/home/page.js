@@ -58,29 +58,37 @@ export default function HomePage() {
       const data = await response.json();
       console.log("Fetched posts:", data);
 
-      const postsWithComments = await Promise.all(
-        (Array.isArray(data) ? data : []).map(async (post) => {
-          try {
-            const commentsResponse = await fetch(
-              `/api/comments/post/${post.id}`,
-              {
-                headers: token ? { Authorization: `Bearer ${token}` } : {},
+      let postsWithComments;
+      if (token) {
+        postsWithComments = await Promise.all(
+          (Array.isArray(data) ? data : []).map(async (post) => {
+            try {
+              const commentsResponse = await fetch(
+                `/api/comments/post/${post.id}`,
+                {
+                  headers: { Authorization: `Bearer ${token}` },
+                }
+              );
+              if (commentsResponse.ok) {
+                const comments = await commentsResponse.json();
+                return { ...post, comments };
               }
-            );
-            if (commentsResponse.ok) {
-              const comments = await commentsResponse.json();
-              return { ...post, comments };
+              return { ...post, comments: [] };
+            } catch (error) {
+              console.error(
+                `Error fetching comments for post ${post.id}:`,
+                error
+              );
+              return { ...post, comments: [] };
             }
-            return { ...post, comments: [] };
-          } catch (error) {
-            console.error(
-              `Error fetching comments for post ${post.id}:`,
-              error
-            );
-            return { ...post, comments: [] };
-          }
-        })
-      );
+          })
+        );
+      } else {
+        postsWithComments = (Array.isArray(data) ? data : []).map((post) => ({
+          ...post,
+          comments: [],
+        }));
+      }
 
       setPosts(postsWithComments);
       setFilteredPosts(postsWithComments);
