@@ -1,2 +1,2 @@
-email,username,password,full_name,is_active,is_superuser
-bob5@example.com,bob5,bob5password,bob5 Example,True,False 
+username,password,is_active,is_superuser
+bob5,bob5password,bob5 Example,True,False 

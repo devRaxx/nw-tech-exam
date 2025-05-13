@@ -9,9 +9,7 @@ import Cookies from "js-cookie";
 export default function Register() {
   const router = useRouter();
   const [formData, setFormData] = useState({
-    email: "",
     username: "",
-    full_name: "",
     password: "",
   });
   const [error, setError] = useState("");
@@ -63,7 +61,6 @@ export default function Register() {
         return;
       }
 
-      // Store token and redirect
       localStorage.setItem("token", loginData.access_token);
       Cookies.set("token", loginData.access_token, {
         expires: 30,
@@ -97,27 +94,6 @@ export default function Register() {
 
             <div>
               <label
-                htmlFor="email"
-                className="block text-sm font-medium text-gray-700"
-              >
-                Email address
-              </label>
-              <div className="mt-1">
-                <input
-                  id="email"
-                  name="email"
-                  type="email"
-                  autoComplete="email"
-                  required
-                  value={formData.email}
-                  onChange={handleChange}
-                  className="text-black appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-gray-500 focus:border-gray-500"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label
                 htmlFor="username"
                 className="block text-sm font-medium text-gray-700"
               >
@@ -130,26 +106,6 @@ export default function Register() {
                   type="text"
                   required
                   value={formData.username}
-                  onChange={handleChange}
-                  className="text-black appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-gray-500 focus:border-gray-500"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label
-                htmlFor="full_name"
-                className="block text-sm font-medium text-gray-700"
-              >
-                Full Name
-              </label>
-              <div className="mt-1">
-                <input
-                  id="full_name"
-                  name="full_name"
-                  type="text"
-                  required
-                  value={formData.full_name}
                   onChange={handleChange}
                   className="text-black appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-gray-500 focus:border-gray-500"
                 />

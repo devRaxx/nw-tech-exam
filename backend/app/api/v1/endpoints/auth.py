@@ -20,12 +20,6 @@ def register(
     db: Session = Depends(get_db),
     user_in: UserCreate,
 ) -> Any:
-    user = db.query(User).filter(User.email == user_in.email).first()
-    if user:
-        raise HTTPException(
-            status_code=400,
-            detail="The user with this email already exists in the system.",
-        )
     user = db.query(User).filter(User.username == user_in.username).first()
     if user:
         raise HTTPException(
@@ -34,10 +28,8 @@ def register(
         )
     
     user = User(
-        email=user_in.email,
         username=user_in.username,
         hashed_password=get_password_hash(user_in.password),
-        full_name=user_in.full_name,
     )
     db.add(user)
     db.commit()

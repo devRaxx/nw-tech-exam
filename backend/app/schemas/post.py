@@ -7,7 +7,6 @@ from .comment import Comment
 class PostBase(BaseModel):
     title: str
     body: str
-    image_url: Optional[str] = None
 
 class PostCreate(PostBase):
     pass
@@ -15,7 +14,6 @@ class PostCreate(PostBase):
 class PostUpdate(BaseModel):
     title: Optional[str] = None
     body: Optional[str] = None
-    image_url: Optional[str] = None
 
 class PostInDBBase(PostBase):
     id: int
