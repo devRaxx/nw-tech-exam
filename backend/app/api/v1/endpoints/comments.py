@@ -18,12 +18,9 @@ def read_comments(
     limit: int = 100,
     current_user: User = Depends(get_current_user),
 ) -> Any:
-    """
-    Retrieve comments for a post.
-    """
     comments = db.query(Comment).filter(
         Comment.post_id == post_id,
-        Comment.parent_id == None  # Only get top-level comments
+        Comment.parent_id == None
     ).offset(skip).limit(limit).all()
     
     result = []
@@ -44,9 +41,6 @@ def create_comment(
     comment_in: CommentCreate,
     current_user: User = Depends(get_current_user),
 ) -> Any:
-    """
-    Create new comment.
-    """
     comment = Comment(
         **comment_in.dict(),
         post_id=post_id,
@@ -65,9 +59,6 @@ def update_comment(
     comment_in: CommentUpdate,
     current_user: User = Depends(get_current_user),
 ) -> Any:
-    """
-    Update a comment.
-    """
     comment = db.query(Comment).filter(Comment.id == comment_id).first()
     if not comment:
         raise HTTPException(status_code=404, detail="Comment not found")
@@ -89,9 +80,6 @@ def delete_comment(
     comment_id: int,
     current_user: User = Depends(get_current_user),
 ) -> Any:
-    """
-    Delete a comment.
-    """
     comment = db.query(Comment).filter(Comment.id == comment_id).first()
     if not comment:
         raise HTTPException(status_code=404, detail="Comment not found")
@@ -109,14 +97,10 @@ def like_comment(
     comment_id: int,
     current_user: User = Depends(get_current_user),
 ) -> Any:
-    """
-    Like a comment.
-    """
     comment = db.query(Comment).filter(Comment.id == comment_id).first()
     if not comment:
         raise HTTPException(status_code=404, detail="Comment not found")
     
-    # Remove dislike if exists
     dislike = db.query(CommentDislike).filter(
         CommentDislike.comment_id == comment_id,
         CommentDislike.user_id == current_user.id
@@ -124,7 +108,6 @@ def like_comment(
     if dislike:
         db.delete(dislike)
     
-    # Add like if not exists
     like = db.query(CommentLike).filter(
         CommentLike.comment_id == comment_id,
         CommentLike.user_id == current_user.id
@@ -150,9 +133,6 @@ def dislike_comment(
     comment_id: int,
     current_user: User = Depends(get_current_user),
 ) -> Any:
-    """
-    Dislike a comment.
-    """
     comment = db.query(Comment).filter(Comment.id == comment_id).first()
     if not comment:
         raise HTTPException(status_code=404, detail="Comment not found")

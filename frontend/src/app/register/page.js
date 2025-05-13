@@ -29,32 +29,24 @@ export default function Register() {
     setError("");
 
     try {
-      const response = await fetch(
-        "http://localhost:8000/api/v1/auth/register",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(formData),
-        }
-      );
+      const response = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      });
 
       if (response.ok) {
         // After successful registration, log the user in
-        const loginResponse = await fetch(
-          "http://localhost:8000/api/v1/auth/login",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/x-www-form-urlencoded",
-            },
-            body: new URLSearchParams({
-              username: formData.email,
-              password: formData.password,
-            }),
-          }
-        );
+        const loginFormData = new FormData();
+        loginFormData.append("username", formData.email);
+        loginFormData.append("password", formData.password);
+
+        const loginResponse = await fetch("/api/auth/login", {
+          method: "POST",
+          body: loginFormData,
+        });
 
         if (loginResponse.ok) {
           const data = await loginResponse.json();

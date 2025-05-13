@@ -4,10 +4,11 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { IoIosEye, IoIosEyeOff } from "react-icons/io";
+import Cookies from "js-cookie";
 
 export default function Login() {
   const router = useRouter();
-  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -17,20 +18,24 @@ export default function Login() {
     setError("");
 
     try {
-      const response = await fetch("http://localhost:8000/api/v1/auth/login", {
+      const formData = new FormData();
+      formData.append("username", username);
+      formData.append("password", password);
+
+      const response = await fetch("/api/auth/login", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/x-www-form-urlencoded",
-        },
-        body: new URLSearchParams({
-          username: email,
-          password: password,
-        }),
+        body: formData,
       });
 
       if (response.ok) {
         const data = await response.json();
         localStorage.setItem("token", data.access_token);
+        Cookies.set("token", data.access_token, {
+          expires: 30,
+          secure: true,
+          sameSite: "strict",
+          path: "/",
+        });
         router.push("/");
       } else {
         const error = await response.json();
@@ -60,20 +65,20 @@ export default function Login() {
 
             <div>
               <label
-                htmlFor="email"
+                htmlFor="username"
                 className="block text-sm font-medium text-gray-700"
               >
-                Email address
+                Username
               </label>
               <div className="mt-1">
                 <input
-                  id="email"
-                  name="email"
-                  type="email"
-                  autoComplete="email"
+                  id="username"
+                  name="username"
+                  type="username"
+                  autoComplete="username"
                   required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
                   className="appearance-none block w-full px-3 py-2 border text-black border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-gray-500 focus:border-gray-500"
                 />
               </div>

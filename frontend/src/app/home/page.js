@@ -18,27 +18,32 @@ export default function HomePage() {
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (token) {
-      fetch("http://localhost:8000/api/v1/auth/me", {
+      fetch("/api/auth/me", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       })
-        .then((res) => res.json())
+        .then((res) => {
+          if (!res.ok) {
+            throw new Error("Failed to fetch user data");
+          }
+          return res.json();
+        })
         .then((data) => setUser(data))
-        .catch(() => {
+        .catch((error) => {
+          console.error("Error fetching user data:", error);
           localStorage.removeItem("token");
           setUser(null);
         });
     }
 
-    // Fetch posts
     fetchPosts();
   }, []);
 
   const fetchPosts = async () => {
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch("http://localhost:8000/api/v1/posts/", {
+      const response = await fetch("/api/posts", {
         headers: token ? { Authorization: `Bearer ${token}` } : {},
       });
       const data = await response.json();
@@ -76,7 +81,7 @@ export default function HomePage() {
   const handleCreatePost = async (postData) => {
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch("http://localhost:8000/api/v1/posts/", {
+      const response = await fetch("/api/posts", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

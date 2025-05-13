@@ -5,14 +5,14 @@ import Link from "next/link";
 import { useState, useEffect } from "react";
 import { PiSignInBold } from "react-icons/pi";
 import { RiLogoutBoxLine } from "react-icons/ri";
+import Cookies from "js-cookie";
 
 export default function Navbar() {
   const router = useRouter();
   const [user, setUser] = useState(null);
 
   useEffect(() => {
-    // Check if user is logged in
-    const token = localStorage.getItem("token");
+    const token = Cookies.get("token");
     if (token) {
       fetch("http://localhost:8000/api/v1/auth/me", {
         headers: {
@@ -22,14 +22,14 @@ export default function Navbar() {
         .then((res) => res.json())
         .then((data) => setUser(data))
         .catch(() => {
-          localStorage.removeItem("token");
+          Cookies.remove("token");
           setUser(null);
         });
     }
   }, []);
 
   const handleLogout = () => {
-    localStorage.removeItem("token");
+    Cookies.remove("token");
     setUser(null);
     router.push("/home");
   };
