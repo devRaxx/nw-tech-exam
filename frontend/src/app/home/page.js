@@ -68,9 +68,7 @@ export default function HomePage() {
     }
 
     if (activeFilter === "recent") {
-      filtered.sort(
-        (a, b) => new Date(b.posted_date) - new Date(a.posted_date)
-      );
+      filtered.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
     } else {
       filtered.sort((a, b) => b.likes_count - a.likes_count);
     }

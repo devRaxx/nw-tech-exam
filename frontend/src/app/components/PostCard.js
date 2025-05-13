@@ -162,7 +162,13 @@ export default function PostCard({ post, onLike }) {
           <span className="text-sm text-gray-500">{post.author.username}</span>
           <span className="mx-2 text-gray-300">•</span>
           <span className="text-sm text-gray-500">
-            {new Date(post.created_at).toLocaleDateString()}
+            {new Date(post.created_at).toLocaleDateString()} at{" "}
+            {new Date(
+              new Date(post.created_at).getTime() + 8 * 60 * 60 * 1000
+            ).toLocaleTimeString([], {
+              hour: "numeric",
+              minute: "2-digit",
+            })}
           </span>
         </div>
         {currentUser && currentUser.id === post.author.id && (
