@@ -7,22 +7,30 @@ export default function CreatePostModal({ isOpen, onClose, onSubmit }) {
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
   const [user, setUser] = useState(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
     const token = Cookies.get("token");
-    if (token) {
-      fetch("http://localhost:8000/api/v1/auth/me", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      })
-        .then((res) => res.json())
-        .then((data) => setUser(data))
-        .catch(() => {
-          Cookies.remove("token");
-          setUser(null);
-        });
+    if (!token) {
+      setIsAuthenticated(false);
+      return;
     }
+
+    fetch("http://localhost:8000/api/v1/auth/me", {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        setUser(data);
+        setIsAuthenticated(true);
+      })
+      .catch(() => {
+        Cookies.remove("token");
+        setUser(null);
+        setIsAuthenticated(false);
+      });
   }, []);
 
   const handleSubmit = (e) => {
@@ -33,7 +41,52 @@ export default function CreatePostModal({ isOpen, onClose, onSubmit }) {
     onClose();
   };
 
-  if (!isOpen || !user) {
+  if (!isOpen) {
+    return null;
+  }
+
+  if (!isAuthenticated) {
+    return (
+      <div className="fixed inset-0 bg-white/30 backdrop-blur-sm flex items-center justify-center p-4">
+        <div className="bg-white rounded-lg max-w-2xl w-full p-6">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-2xl font-bold text-gray-900">
+              Authentication Required
+            </h2>
+            <button
+              onClick={onClose}
+              className="text-gray-400 hover:text-gray-500"
+            >
+              <svg
+                className="h-6 w-6"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
+            </button>
+          </div>
+          <p className="text-gray-600 mb-4">Please log in to create a post.</p>
+          <div className="flex justify-end">
+            <button
+              onClick={onClose}
+              className="px-4 py-2 text-sm font-medium text-white bg-gray-900 rounded-md hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) {
     return null;
   }
 

@@ -254,7 +254,7 @@ export default function PostCard({ post, onLike }) {
           disabled={!token}
           className={`flex items-center space-x-1 ${
             isLiked ? "text-red-500" : "text-gray-500 hover:text-red-500"
-          } ${!token ? "opacity-50 cursor-not-allowed" : ""}`}
+          } ${token ? "" : "opacity-50 cursor-not-allowed"}`}
         >
           <svg
             className="h-5 w-5"
@@ -277,7 +277,7 @@ export default function PostCard({ post, onLike }) {
           disabled={!token}
           className={`flex items-center space-x-1 ${
             isDisliked ? "text-blue-500" : "text-gray-500 hover:text-blue-500"
-          } ${!token ? "opacity-50 cursor-not-allowed" : ""}`}
+          } ${token ? "" : "opacity-50 cursor-not-allowed"}`}
         >
           <svg
             className="h-5 w-5"

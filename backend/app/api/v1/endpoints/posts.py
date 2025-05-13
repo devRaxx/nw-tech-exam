@@ -2,7 +2,7 @@ from typing import Any, List
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
-from app.api.deps import get_db, get_current_user
+from app.api.deps import get_db, get_current_user, get_current_user_optional
 from app.models.user import User
 from app.models.post import Post, PostLike, PostDislike
 from app.schemas.post import PostCreate, PostUpdate, Post as PostSchema, PostWithStats
@@ -14,7 +14,7 @@ def read_posts(
     db: Session = Depends(get_db),
     skip: int = 0,
     limit: int = 100,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_user_optional),
 ) -> Any:
     """
     Retrieve posts.
@@ -25,8 +25,12 @@ def read_posts(
         post_dict = PostWithStats.from_orm(post)
         post_dict.likes_count = len(post.likes)
         post_dict.dislikes_count = len(post.dislikes)
-        post_dict.is_liked = any(like.user_id == current_user.id for like in post.likes)
-        post_dict.is_disliked = any(dislike.user_id == current_user.id for dislike in post.dislikes)
+        if current_user:
+            post_dict.is_liked = any(like.user_id == current_user.id for like in post.likes)
+            post_dict.is_disliked = any(dislike.user_id == current_user.id for dislike in post.dislikes)
+        else:
+            post_dict.is_liked = False
+            post_dict.is_disliked = False
         result.append(post_dict)
     return result
 

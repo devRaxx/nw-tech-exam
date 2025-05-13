@@ -50,6 +50,7 @@ export default function Navbar() {
       setUser(null);
 
       router.push("/home");
+      window.location.reload();
     } catch (error) {
       console.error("Error during logout:", error);
       Cookies.remove("token");
