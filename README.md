@@ -109,6 +109,8 @@ pip3 install -r requirements.txt
 python3 seed_from_csv.py
 ```
 
+4. Migrating Data
+
 The application will be available at:
 
 - Frontend: http://localhost:3000
