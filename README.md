@@ -1,6 +1,6 @@
 # NW Tech Exam
 
-A full-stack web application built with FastAPI, PostgreSQL and Next.js.
+A full-stack web application built with FastAPI, PostgreSQL(deployed in [NeonDB](https://neon.tech/) and Next.js.
 
 ## 🚀 Features
 
