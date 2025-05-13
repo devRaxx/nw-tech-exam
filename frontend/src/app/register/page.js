@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { IoIosEye, IoIosEyeOff } from "react-icons/io";
+import Cookies from "js-cookie";
 
 export default function Register() {
   const router = useRouter();
@@ -37,27 +38,42 @@ export default function Register() {
         body: JSON.stringify(formData),
       });
 
-      if (response.ok) {
-        // After successful registration, log the user in
-        const loginFormData = new FormData();
-        loginFormData.append("username", formData.email);
-        loginFormData.append("password", formData.password);
+      const registerData = await response.json();
 
-        const loginResponse = await fetch("/api/auth/login", {
-          method: "POST",
-          body: loginFormData,
-        });
-
-        if (loginResponse.ok) {
-          const data = await loginResponse.json();
-          localStorage.setItem("token", data.access_token);
-          router.push("/");
-        }
-      } else {
-        const error = await response.json();
-        setError(error.detail || "Registration failed");
+      if (!response.ok) {
+        setError(registerData.detail || "Registration failed");
+        return;
       }
+
+      const loginFormData = new FormData();
+      loginFormData.append("username", formData.username);
+      loginFormData.append("password", formData.password);
+
+      const loginResponse = await fetch("/api/auth/login", {
+        method: "POST",
+        body: loginFormData,
+      });
+
+      const loginData = await loginResponse.json();
+
+      if (!loginResponse.ok) {
+        setError(
+          loginData.detail || "Automatic login failed after registration"
+        );
+        return;
+      }
+
+      // Store token and redirect
+      localStorage.setItem("token", loginData.access_token);
+      Cookies.set("token", loginData.access_token, {
+        expires: 30,
+        secure: true,
+        sameSite: "strict",
+        path: "/",
+      });
+      router.push("/");
     } catch (error) {
+      console.error("Registration error:", error);
       setError("An error occurred. Please try again.");
     }
   };

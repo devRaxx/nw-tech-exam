@@ -1,10 +1,29 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import Cookies from "js-cookie";
 
 export default function CreatePostModal({ isOpen, onClose, onSubmit }) {
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    const token = Cookies.get("token");
+    if (token) {
+      fetch("http://localhost:8000/api/v1/auth/me", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+        .then((res) => res.json())
+        .then((data) => setUser(data))
+        .catch(() => {
+          Cookies.remove("token");
+          setUser(null);
+        });
+    }
+  }, []);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -14,10 +33,12 @@ export default function CreatePostModal({ isOpen, onClose, onSubmit }) {
     onClose();
   };
 
-  if (!isOpen) return null;
+  if (!isOpen || !user) {
+    return null;
+  }
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 bg-white/30 backdrop-blur-sm flex items-center justify-center p-4">
       <div className="bg-white rounded-lg max-w-2xl w-full p-6">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-2xl font-bold text-gray-900">Create New Post</h2>
@@ -54,7 +75,7 @@ export default function CreatePostModal({ isOpen, onClose, onSubmit }) {
               id="title"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent"
+              className="text-black w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent"
               required
             />
           </div>
@@ -71,7 +92,7 @@ export default function CreatePostModal({ isOpen, onClose, onSubmit }) {
               value={body}
               onChange={(e) => setBody(e.target.value)}
               rows={6}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent"
+              className="text-black w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent"
               required
             />
           </div>

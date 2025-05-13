@@ -1,14 +1,16 @@
-from datetime import timedelta
+from datetime import timedelta, datetime
 from typing import Any
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
+from jose import jwt, JWTError
 
-from app.api.deps import get_db, get_current_user
+from app.api.deps import get_db, get_current_user, oauth2_scheme
 from app.core.config import settings
 from app.core.security import create_access_token, get_password_hash, verify_password
 from app.models.user import User
 from app.schemas.user import UserCreate, User as UserSchema
+from app.models.blacklisted_token import BlacklistedToken
 
 router = APIRouter()
 
@@ -71,3 +73,33 @@ def read_users_me(
     Get current user.
     """
     return current_user 
+
+@router.post("/logout")
+def logout(
+    current_user: User = Depends(get_current_user),
+    token: str = Depends(oauth2_scheme),
+    db: Session = Depends(get_db),
+) -> Any:
+    """
+    Invalidate the current token.
+    """
+    try:
+        # Add token to blacklist with expiry time from token
+        payload = jwt.decode(
+            token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM]
+        )
+        expiry = datetime.fromtimestamp(payload.get("exp"))
+        
+        blacklisted_token = BlacklistedToken(
+            token=token,
+            expires_at=expiry,
+            user_id=current_user.id
+        )
+        db.add(blacklisted_token)
+        db.commit()
+        return {"message": "Successfully logged out"}
+    except JWTError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Could not validate token",
+        ) 

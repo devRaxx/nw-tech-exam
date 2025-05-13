@@ -6,13 +6,13 @@ export default function CommentSection({ postId, comments, setComments }) {
   const [newComment, setNewComment] = useState("");
   const [replyingTo, setReplyingTo] = useState(null);
   const [replyContent, setReplyContent] = useState("");
+  const token = localStorage.getItem("token");
 
   const handleSubmitComment = async (e) => {
     e.preventDefault();
     if (!newComment.trim()) return;
 
     try {
-      const token = localStorage.getItem("token");
       const response = await fetch(`/api/comments/post/${postId}`, {
         method: "POST",
         headers: {
@@ -37,7 +37,6 @@ export default function CommentSection({ postId, comments, setComments }) {
     if (!replyContent.trim()) return;
 
     try {
-      const token = localStorage.getItem("token");
       const response = await fetch(`/api/comments/post/${postId}`, {
         method: "POST",
         headers: {
@@ -69,7 +68,6 @@ export default function CommentSection({ postId, comments, setComments }) {
 
   const handleLikeComment = async (commentId) => {
     try {
-      const token = localStorage.getItem("token");
       const response = await fetch(`/api/comments/${commentId}/like`, {
         method: "POST",
         headers: {
@@ -92,7 +90,6 @@ export default function CommentSection({ postId, comments, setComments }) {
 
   const handleDislikeComment = async (commentId) => {
     try {
-      const token = localStorage.getItem("token");
       const response = await fetch(`/api/comments/${commentId}/dislike`, {
         method: "POST",
         headers: {
@@ -229,23 +226,25 @@ export default function CommentSection({ postId, comments, setComments }) {
 
   return (
     <div className="mt-4">
-      <form onSubmit={handleSubmitComment} className="mb-6">
-        <textarea
-          value={newComment}
-          onChange={(e) => setNewComment(e.target.value)}
-          placeholder="Write a comment..."
-          className="text-black w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent"
-          rows={3}
-        />
-        <div className="flex justify-end mt-2">
-          <button
-            type="submit"
-            className="px-4 py-2 text-sm font-medium text-white bg-gray-900 rounded-md hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
-          >
-            Comment
-          </button>
-        </div>
-      </form>
+      {token && (
+        <form onSubmit={handleSubmitComment} className="mb-6">
+          <textarea
+            value={newComment}
+            onChange={(e) => setNewComment(e.target.value)}
+            placeholder="Write a comment..."
+            className="text-black w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent"
+            rows={3}
+          />
+          <div className="flex justify-end mt-2">
+            <button
+              type="submit"
+              className="px-4 py-2 text-sm font-medium text-white bg-gray-900 rounded-md hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+            >
+              Comment
+            </button>
+          </div>
+        </form>
+      )}
 
       <div className="space-y-4">
         {comments.map((comment) => (

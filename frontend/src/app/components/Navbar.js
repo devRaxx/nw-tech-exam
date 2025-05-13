@@ -28,10 +28,35 @@ export default function Navbar() {
     }
   }, []);
 
-  const handleLogout = () => {
-    Cookies.remove("token");
-    setUser(null);
-    router.push("/home");
+  const handleLogout = async () => {
+    try {
+      const token = Cookies.get("token");
+      if (token) {
+        const response = await fetch("/api/auth/logout", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (!response.ok) {
+          console.error("Error during logout:", await response.json());
+        }
+      }
+
+      Cookies.remove("token");
+      localStorage.removeItem("token");
+
+      setUser(null);
+
+      router.push("/home");
+    } catch (error) {
+      console.error("Error during logout:", error);
+      Cookies.remove("token");
+      localStorage.removeItem("token");
+      setUser(null);
+      router.push("/home");
+    }
   };
 
   return (
@@ -39,20 +64,18 @@ export default function Navbar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           <div className="flex items-center">
-            <Link href="/home" className="text-2xl font-bold text-yellow-400">
+            <Link href="/home" className="text-2xl font-bold text-yellow-400  ">
               NuWorks Blogsite
             </Link>
           </div>
 
           <div className="flex items-center">
             {user ? (
-              <div className="flex items-center space-x-4">
-                <div className="flex items-center text-gray-200">
-                  <span className="text-gray-400">Logged in as</span>
-                  <span className="ml-2 font-medium text-yellow-400">
-                    {user.username}
-                  </span>
-                </div>
+              <div className="flex items-center space-x-2">
+                <span>Logged in as</span>
+                <span className="text-yellow-400 font-bold mr-5">
+                  {user.username}
+                </span>
                 <button
                   onClick={handleLogout}
                   className="flex items-center gap-2 px-4 py-2 text-sm font-bold text-black bg-yellow-400 rounded-md hover:bg-yellow-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"

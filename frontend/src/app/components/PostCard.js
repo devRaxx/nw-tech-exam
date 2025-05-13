@@ -244,9 +244,10 @@ export default function PostCard({ post, onLike }) {
       <div className="flex items-center space-x-4">
         <button
           onClick={handleLike}
+          disabled={!token}
           className={`flex items-center space-x-1 ${
             isLiked ? "text-red-500" : "text-gray-500 hover:text-red-500"
-          }`}
+          } ${!token ? "opacity-50 cursor-not-allowed" : ""}`}
         >
           <svg
             className="h-5 w-5"
@@ -266,9 +267,10 @@ export default function PostCard({ post, onLike }) {
 
         <button
           onClick={handleDislike}
+          disabled={!token}
           className={`flex items-center space-x-1 ${
             isDisliked ? "text-blue-500" : "text-gray-500 hover:text-blue-500"
-          }`}
+          } ${!token ? "opacity-50 cursor-not-allowed" : ""}`}
         >
           <svg
             className="h-5 w-5"
@@ -288,7 +290,10 @@ export default function PostCard({ post, onLike }) {
 
         <button
           onClick={toggleComments}
-          className="flex items-center space-x-1 text-gray-500 hover:text-gray-700"
+          disabled={!token}
+          className={`flex items-center space-x-1 text-gray-500 hover:text-gray-700 ${
+            !token ? "opacity-50 cursor-not-allowed" : ""
+          }`}
         >
           <svg
             className="h-5 w-5"
@@ -307,7 +312,7 @@ export default function PostCard({ post, onLike }) {
         </button>
       </div>
 
-      {showComments && (
+      {showComments && token && (
         <div className="mt-4">
           {isLoadingComments ? (
             <p className="text-sm text-gray-500">Loading comments...</p>
