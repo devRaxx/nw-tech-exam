@@ -35,11 +35,11 @@ export default function Navbar() {
   };
 
   return (
-    <nav className="border-b border-gray-200 bg-white">
+    <nav className="border-b border-gray-200 bg-gray-700">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           <div className="flex items-center">
-            <Link href="/home" className="text-2xl font-bold text-gray-900">
+            <Link href="/home" className="text-2xl font-bold text-yellow-400  ">
               NuWorks Blogsite
             </Link>
           </div>
@@ -50,17 +50,17 @@ export default function Navbar() {
                 <span className="text-gray-700">{user.username}</span>
                 <button
                   onClick={handleLogout}
-                  className="px-4 py-2 text-sm font-medium text-white bg-gray-900 rounded-md hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+                  className="flex items-center gap-2 px-4 py-2 text-sm font-bold text-black bg-yellow-400 rounded-md hover:bg-yellow-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
                 >
-                  Logout
+                  <RiLogoutBoxLine /> Logout
                 </button>
               </div>
             ) : (
               <Link
                 href="/login"
-                className="px-4 py-2 text-sm font-medium text-white bg-gray-900 rounded-md hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+                className="flex items-center gap-2 px-4 py-2 text-sm font-bold text-black bg-yellow-400 rounded-md hover:bg-yellow-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
               >
-                Sign In
+                <PiSignInBold /> Sign In
               </Link>
             )}
           </div>

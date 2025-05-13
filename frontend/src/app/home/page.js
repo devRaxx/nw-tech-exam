@@ -16,7 +16,6 @@ export default function HomePage() {
   const [user, setUser] = useState(null);
 
   useEffect(() => {
-    // Check if user is logged in
     const token = localStorage.getItem("token");
     if (token) {
       fetch("http://localhost:8000/api/v1/auth/me", {
@@ -54,7 +53,6 @@ export default function HomePage() {
   useEffect(() => {
     let filtered = [...posts];
 
-    // Apply search filter
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
       filtered = filtered.filter(
@@ -64,7 +62,6 @@ export default function HomePage() {
       );
     }
 
-    // Apply sort filter
     if (activeFilter === "recent") {
       filtered.sort(
         (a, b) => new Date(b.posted_date) - new Date(a.posted_date)
