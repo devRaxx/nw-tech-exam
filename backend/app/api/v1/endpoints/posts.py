@@ -105,14 +105,10 @@ def like_post(
     post_id: int,
     current_user: User = Depends(get_current_user),
 ) -> Any:
-    """
-    Like a post.
-    """
     post = db.query(Post).filter(Post.id == post_id).first()
     if not post:
         raise HTTPException(status_code=404, detail="Post not found")
-    
-    # Remove dislike if exists
+
     dislike = db.query(PostDislike).filter(
         PostDislike.post_id == post_id,
         PostDislike.user_id == current_user.id
@@ -120,7 +116,6 @@ def like_post(
     if dislike:
         db.delete(dislike)
     
-    # Add like if not exists
     like = db.query(PostLike).filter(
         PostLike.post_id == post_id,
         PostLike.user_id == current_user.id
@@ -153,7 +148,6 @@ def dislike_post(
     if not post:
         raise HTTPException(status_code=404, detail="Post not found")
     
-    # Remove like if exists
     like = db.query(PostLike).filter(
         PostLike.post_id == post_id,
         PostLike.user_id == current_user.id
@@ -161,7 +155,6 @@ def dislike_post(
     if like:
         db.delete(like)
     
-    # Add dislike if not exists
     dislike = db.query(PostDislike).filter(
         PostDislike.post_id == post_id,
         PostDislike.user_id == current_user.id

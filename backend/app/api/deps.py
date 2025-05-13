@@ -28,7 +28,6 @@ async def get_current_user(
         headers={"WWW-Authenticate": "Bearer"},
     )
     try:
-        # Check if token is blacklisted
         blacklisted = db.query(BlacklistedToken).filter(BlacklistedToken.token == token).first()
         if blacklisted:
             raise HTTPException(
@@ -65,7 +64,6 @@ async def get_current_user_optional(
     if not token:
         return None
     try:
-        # Check if token is blacklisted
         blacklisted = db.query(BlacklistedToken).filter(BlacklistedToken.token == token).first()
         if blacklisted:
             return None

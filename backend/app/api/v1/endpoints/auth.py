@@ -72,11 +72,7 @@ def logout(
     token: str = Depends(oauth2_scheme),
     db: Session = Depends(get_db),
 ) -> Any:
-    """
-    Invalidate the current token.
-    """
     try:
-        # Add token to blacklist with expiry time from token
         payload = jwt.decode(
             token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM]
         )

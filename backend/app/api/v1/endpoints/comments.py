@@ -29,8 +29,7 @@ def read_comments(
         comment_dict.dislikes_count = len(comment.dislikes)
         comment_dict.is_liked = any(like.user_id == current_user.id for like in comment.likes)
         comment_dict.is_disliked = any(dislike.user_id == current_user.id for dislike in comment.dislikes)
-        
-        # Process replies recursively
+
         if comment.replies:
             comment_dict.replies = [process_comment(reply) for reply in comment.replies]
         
@@ -141,8 +140,7 @@ def dislike_comment(
     comment = db.query(Comment).filter(Comment.id == comment_id).first()
     if not comment:
         raise HTTPException(status_code=404, detail="Comment not found")
-    
-    # Remove like if exists
+
     like = db.query(CommentLike).filter(
         CommentLike.comment_id == comment_id,
         CommentLike.user_id == current_user.id
@@ -150,7 +148,6 @@ def dislike_comment(
     if like:
         db.delete(like)
     
-    # Add dislike if not exists
     dislike = db.query(CommentDislike).filter(
         CommentDislike.comment_id == comment_id,
         CommentDislike.user_id == current_user.id
