@@ -11,23 +11,25 @@ export async function POST(request) {
       );
     }
 
-    const response = await fetch("http://localhost:8000/api/v1/auth/logout", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-
-    const data = await response.json();
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/logout`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
 
     if (!response.ok) {
+      const data = await response.json();
       return NextResponse.json(
-        { detail: data.detail || "Logout failed" },
+        { detail: data.detail || "Failed to logout" },
         { status: response.status }
       );
     }
 
-    return NextResponse.json(data);
+    return new NextResponse(null, { status: 204 });
   } catch (error) {
     return NextResponse.json(
       { detail: "An error occurred during logout" },

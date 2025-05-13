@@ -12,7 +12,7 @@ export async function POST(request, { params }) {
     }
 
     const response = await fetch(
-      `http://localhost:8000/api/v1/posts/${params.id}/dislike`,
+      `${process.env.NEXT_PUBLIC_API_BASE_URL}/posts/${params.id}/dislike`,
       {
         method: "POST",
         headers: {

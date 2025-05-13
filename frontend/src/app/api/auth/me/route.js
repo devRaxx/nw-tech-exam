@@ -11,17 +11,20 @@ export async function GET(request) {
       );
     }
 
-    const response = await fetch("http://localhost:8000/api/v1/auth/me", {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/me`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
 
     const data = await response.json();
 
     if (!response.ok) {
       return NextResponse.json(
-        { detail: data.detail || "Failed to fetch user profile" },
+        { detail: data.detail || "Failed to fetch user data" },
         { status: response.status }
       );
     }
@@ -29,7 +32,7 @@ export async function GET(request) {
     return NextResponse.json(data);
   } catch (error) {
     return NextResponse.json(
-      { detail: "An error occurred while fetching user profile" },
+      { detail: "An error occurred while fetching user data" },
       { status: 500 }
     );
   }

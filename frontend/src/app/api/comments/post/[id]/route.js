@@ -1,13 +1,12 @@
 import { NextResponse } from "next/server";
 
-export async function GET(request, context) {
+export async function GET(request, { params }) {
   try {
-    const params = await context.params;
-    const postId = params.id;
-
+    const { id: postId } = params;
     const token = request.headers.get("authorization")?.split(" ")[1];
+
     const response = await fetch(
-      `http://localhost:8000/api/v1/comments/post/${postId}`,
+      `${process.env.NEXT_PUBLIC_API_BASE_URL}/comments/post/${postId}`,
       {
         headers: token ? { Authorization: `Bearer ${token}` } : {},
       }
@@ -31,11 +30,9 @@ export async function GET(request, context) {
   }
 }
 
-export async function POST(request, context) {
+export async function POST(request, { params }) {
   try {
-    const params = await context.params;
-    const postId = params.id;
-
+    const { id: postId } = params;
     const token = request.headers.get("authorization")?.split(" ")[1];
 
     if (!token) {
@@ -45,16 +42,15 @@ export async function POST(request, context) {
       );
     }
 
-    const body = await request.json();
     const response = await fetch(
-      `http://localhost:8000/api/v1/comments/post/${postId}`,
+      `${process.env.NEXT_PUBLIC_API_BASE_URL}/comments/post/${postId}`,
       {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify(body),
+        body: JSON.stringify(await request.json()),
       }
     );
 

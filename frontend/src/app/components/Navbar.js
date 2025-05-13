@@ -14,7 +14,7 @@ export default function Navbar() {
   useEffect(() => {
     const token = Cookies.get("token");
     if (token) {
-      fetch("http://localhost:8000/api/v1/auth/me", {
+      fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/me`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },

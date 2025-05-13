@@ -10,27 +10,20 @@ export default function CreatePostModal({ isOpen, onClose, onSubmit }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
-    const token = Cookies.get("token");
-    if (!token) {
-      setIsAuthenticated(false);
-      return;
-    }
-
-    fetch("http://localhost:8000/api/v1/auth/me", {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        setUser(data);
-        setIsAuthenticated(true);
+    const token = localStorage.getItem("token");
+    if (token) {
+      fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/me`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       })
-      .catch(() => {
-        Cookies.remove("token");
-        setUser(null);
-        setIsAuthenticated(false);
-      });
+        .then((res) => res.json())
+        .then((data) => setUser(data))
+        .catch(() => {
+          localStorage.removeItem("token");
+          setUser(null);
+        });
+    }
   }, []);
 
   const handleSubmit = (e) => {

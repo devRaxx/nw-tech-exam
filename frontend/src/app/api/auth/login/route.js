@@ -3,16 +3,19 @@ import { NextResponse } from "next/server";
 export async function POST(request) {
   try {
     const formData = await request.formData();
-    const response = await fetch("http://localhost:8000/api/v1/auth/login", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-      },
-      body: new URLSearchParams({
-        username: formData.get("username"),
-        password: formData.get("password"),
-      }),
-    });
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/login`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: new URLSearchParams({
+          username: formData.get("username"),
+          password: formData.get("password"),
+        }),
+      }
+    );
 
     const data = await response.json();
 

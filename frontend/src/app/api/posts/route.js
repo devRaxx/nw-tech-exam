@@ -4,9 +4,12 @@ export async function GET(request) {
   try {
     const token = request.headers.get("authorization")?.split(" ")[1];
     console.log("Token from request:", token);
-    const response = await fetch("http://localhost:8000/api/v1/posts/", {
-      headers: token ? { Authorization: `Bearer ${token}` } : {},
-    });
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_API_BASE_URL}/posts/`,
+      {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      }
+    );
 
     const data = await response.json();
 
@@ -37,15 +40,17 @@ export async function POST(request) {
       );
     }
 
-    const body = await request.json();
-    const response = await fetch("http://localhost:8000/api/v1/posts/", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify(body),
-    });
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_API_BASE_URL}/posts/`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(await request.json()),
+      }
+    );
 
     const data = await response.json();
 
