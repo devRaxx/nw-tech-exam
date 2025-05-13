@@ -135,7 +135,32 @@ const CommentItem = memo(
 
 CommentItem.displayName = "CommentItem";
 
-export default function CommentSection({ postId, comments, setComments }) {
+// Add a helper function to recursively update the comment tree
+function updateCommentTree(comments, updatedComment) {
+  return comments.map((comment) => {
+    if (comment.id === updatedComment.id) {
+      return {
+        ...comment,
+        ...updatedComment,
+        replies: comment.replies || [],
+      };
+    }
+    if (comment.replies && comment.replies.length > 0) {
+      return {
+        ...comment,
+        replies: updateCommentTree(comment.replies, updatedComment),
+      };
+    }
+    return comment;
+  });
+}
+
+export default function CommentSection({
+  postId,
+  comments,
+  setComments,
+  onCommentUpdate,
+}) {
   const [newComment, setNewComment] = useState("");
   const [replyingTo, setReplyingTo] = useState(null);
   const [replyContent, setReplyContent] = useState("");
@@ -160,12 +185,13 @@ export default function CommentSection({ postId, comments, setComments }) {
           const comment = await response.json();
           setComments((prevComments) => [...prevComments, comment]);
           setNewComment("");
+          if (onCommentUpdate) onCommentUpdate();
         }
       } catch (error) {
         console.error("Error creating comment:", error);
       }
     },
-    [newComment, postId, token, setComments]
+    [newComment, postId, token, setComments, onCommentUpdate]
   );
 
   const handleSubmitReply = useCallback(
@@ -191,18 +217,19 @@ export default function CommentSection({ postId, comments, setComments }) {
           setComments((prevComments) =>
             prevComments.map((comment) =>
               comment.id === parentId
-                ? { ...comment, replies: [...comment.replies, reply] }
+                ? { ...comment, replies: [...(comment.replies || []), reply] }
                 : comment
             )
           );
           setReplyContent("");
           setReplyingTo(null);
+          if (onCommentUpdate) onCommentUpdate();
         }
       } catch (error) {
         console.error("Error creating reply:", error);
       }
     },
-    [replyContent, postId, token, setComments]
+    [replyContent, postId, token, setComments, onCommentUpdate]
   );
 
   const handleLikeComment = useCallback(
@@ -218,16 +245,15 @@ export default function CommentSection({ postId, comments, setComments }) {
         if (response.ok) {
           const updatedComment = await response.json();
           setComments((prevComments) =>
-            prevComments.map((comment) =>
-              comment.id === commentId ? updatedComment : comment
-            )
+            updateCommentTree(prevComments, updatedComment)
           );
+          if (onCommentUpdate) onCommentUpdate();
         }
       } catch (error) {
         console.error("Error liking comment:", error);
       }
     },
-    [token, setComments]
+    [token, setComments, onCommentUpdate]
   );
 
   const handleDislikeComment = useCallback(
@@ -243,16 +269,15 @@ export default function CommentSection({ postId, comments, setComments }) {
         if (response.ok) {
           const updatedComment = await response.json();
           setComments((prevComments) =>
-            prevComments.map((comment) =>
-              comment.id === commentId ? updatedComment : comment
-            )
+            updateCommentTree(prevComments, updatedComment)
           );
+          if (onCommentUpdate) onCommentUpdate();
         }
       } catch (error) {
         console.error("Error disliking comment:", error);
       }
     },
-    [token, setComments]
+    [token, setComments, onCommentUpdate]
   );
 
   const handleReply = useCallback((commentId) => {

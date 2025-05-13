@@ -23,15 +23,20 @@ def read_comments(
         Comment.parent_id == None
     ).offset(skip).limit(limit).all()
     
-    result = []
-    for comment in comments:
+    def process_comment(comment):
         comment_dict = CommentWithStats.from_orm(comment)
         comment_dict.likes_count = len(comment.likes)
         comment_dict.dislikes_count = len(comment.dislikes)
         comment_dict.is_liked = any(like.user_id == current_user.id for like in comment.likes)
         comment_dict.is_disliked = any(dislike.user_id == current_user.id for dislike in comment.dislikes)
-        result.append(comment_dict)
-    return result
+        
+        # Process replies recursively
+        if comment.replies:
+            comment_dict.replies = [process_comment(reply) for reply in comment.replies]
+        
+        return comment_dict
+    
+    return [process_comment(comment) for comment in comments]
 
 @router.post("/post/{post_id}", response_model=CommentSchema)
 def create_comment(

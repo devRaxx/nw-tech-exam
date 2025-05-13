@@ -186,6 +186,30 @@ export default function PostCard({ post, onLike, currentUser }) {
     setShowComments((prev) => !prev);
   }, [showComments, hasFetchedComments, post.id, token, handleAuthAction]);
 
+  const refreshComments = useCallback(async () => {
+    if (!token) return;
+
+    try {
+      const response = await fetch(`/api/comments/post/${post.id}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setComments(data);
+      }
+    } catch (error) {
+      console.error("Error refreshing comments:", error);
+    }
+  }, [post.id, token]);
+
+  useEffect(() => {
+    if (showComments) {
+      refreshComments();
+    }
+  }, [post.likes_count, post.dislikes_count, showComments, refreshComments]);
+
   const handleDelete = useCallback(async () => {
     if (!handleAuthAction("delete")) return;
 
@@ -404,6 +428,7 @@ export default function PostCard({ post, onLike, currentUser }) {
               postId={post.id}
               comments={comments}
               setComments={setComments}
+              onCommentUpdate={refreshComments}
             />
           )}
         </div>

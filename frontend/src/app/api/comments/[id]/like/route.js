@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server";
 
-export async function POST(request, { params }) {
+export async function POST(request, context) {
   try {
+    const params = await context.params;
+    const commentId = params.id;
     const token = request.headers.get("authorization")?.split(" ")[1];
 
     if (!token) {
@@ -12,7 +14,7 @@ export async function POST(request, { params }) {
     }
 
     const response = await fetch(
-      `http://localhost:8000/api/v1/comments/${params.id}/like`,
+      `http://localhost:8000/api/v1/comments/${commentId}/like`,
       {
         method: "POST",
         headers: {
