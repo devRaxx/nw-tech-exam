@@ -1,0 +1,2 @@
+email,username,password,full_name,is_active,is_superuser
+bob@example.com,bob,bobpassword,bob Example,True,False 

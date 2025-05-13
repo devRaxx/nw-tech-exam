@@ -97,12 +97,16 @@ cd frontend
 npm run dev
 ```
 
-or
+3. Seeding Data
+
+- place users.csv and posts.csv in backend/app/scripts
+
+- run the following command
 
 ```bash
-cd frontend
-npm run build
-npm run start
+cd backend
+pip3 install -r requirements.txt
+python3 seed_from_csv.py
 ```
 
 The application will be available at:
