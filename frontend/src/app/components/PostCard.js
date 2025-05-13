@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import CommentSection from "./CommentSection";
 
@@ -10,10 +10,67 @@ export default function PostCard({ post, onLike }) {
   const [likesCount, setLikesCount] = useState(post.likes_count);
   const [dislikesCount, setDislikesCount] = useState(post.dislikes_count);
   const [showComments, setShowComments] = useState(false);
+  const [hasFetchedComments, setHasFetchedComments] = useState(false);
+  const [isLoadingComments, setIsLoadingComments] = useState(false);
   const [comments, setComments] = useState([]);
+  const [currentUser, setCurrentUser] = useState(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editedTitle, setEditedTitle] = useState(post.title);
+  const [editedBody, setEditedBody] = useState(post.body);
+  const [isUpdating, setIsUpdating] = useState(false);
 
   const token =
     typeof window !== "undefined" ? localStorage.getItem("token") : null;
+
+  useEffect(() => {
+    if (token) {
+      fetch("/api/auth/me", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+        .then((res) => res.json())
+        .then((data) => setCurrentUser(data))
+        .catch((error) => {
+          console.error("Error fetching user data:", error);
+          localStorage.removeItem("token");
+          setCurrentUser(null);
+        });
+    }
+  }, [token]);
+
+  const handleUpdate = async () => {
+    if (!editedTitle.trim() || !editedBody.trim()) return;
+
+    setIsUpdating(true);
+    try {
+      const response = await fetch(`/api/posts/${post.id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          title: editedTitle,
+          body: editedBody,
+        }),
+      });
+
+      if (response.ok) {
+        const updatedPost = await response.json();
+        post.title = updatedPost.title;
+        post.body = updatedPost.body;
+        setIsEditing(false);
+      } else {
+        const error = await response.json();
+        console.error("Error updating post:", error);
+      }
+    } catch (error) {
+      console.error("Error updating post:", error);
+    } finally {
+      setIsUpdating(false);
+    }
+  };
 
   const handleLike = async () => {
     const prevLiked = isLiked;
@@ -36,7 +93,7 @@ export default function PostCard({ post, onLike }) {
         setIsLiked(prevLiked);
         setIsDisliked(prevDisliked);
         setLikesCount((prev) => (prevLiked ? prev + 1 : prev - 1));
-        if (prevDisliked) setDislikesCount((prev) => prev + 1);
+        setDislikesCount((prev) => (prevDisliked ? prev + 1 : prev - 1));
       }
     } catch (error) {
       console.error("Error liking post:", error);
@@ -66,7 +123,7 @@ export default function PostCard({ post, onLike }) {
         setIsDisliked(prevDisliked);
         setIsLiked(prevLiked);
         setDislikesCount((prev) => (prevDisliked ? prev + 1 : prev - 1));
-        if (prevLiked) setLikesCount((prev) => prev + 1);
+        setLikesCount((prev) => (prevLiked ? prev + 1 : prev - 1));
       }
     } catch (error) {
       console.error("Error disliking post:", error);
@@ -76,7 +133,8 @@ export default function PostCard({ post, onLike }) {
   };
 
   const toggleComments = async () => {
-    if (!showComments) {
+    if (!showComments && !hasFetchedComments) {
+      setIsLoadingComments(true);
       try {
         const response = await fetch(`/api/comments/post/${post.id}`, {
           headers: {
@@ -86,9 +144,12 @@ export default function PostCard({ post, onLike }) {
         if (response.ok) {
           const data = await response.json();
           setComments(data);
+          setHasFetchedComments(true);
         }
       } catch (error) {
         console.error("Error fetching comments:", error);
+      } finally {
+        setIsLoadingComments(false);
       }
     }
     setShowComments((prev) => !prev);
@@ -96,21 +157,89 @@ export default function PostCard({ post, onLike }) {
 
   return (
     <article className="border-b border-gray-200 py-8">
-      <div className="flex items-center mb-4">
-        <span className="text-sm text-gray-500">{post.author.username}</span>
-        <span className="mx-2 text-gray-300">•</span>
-        <span className="text-sm text-gray-500">
-          {new Date(post.created_at).toLocaleDateString()}
-        </span>
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center">
+          <span className="text-sm text-gray-500">{post.author.username}</span>
+          <span className="mx-2 text-gray-300">•</span>
+          <span className="text-sm text-gray-500">
+            {new Date(post.created_at).toLocaleDateString()}
+          </span>
+        </div>
+        {currentUser && currentUser.id === post.author.id && (
+          <button
+            onClick={() => setIsEditing(!isEditing)}
+            className="inline-flex items-center px-3 py-1 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+          >
+            <svg
+              className="w-4 h-4 mr-1.5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+              />
+            </svg>
+            {isEditing ? "Cancel" : "Edit"}
+          </button>
+        )}
       </div>
 
-      <Link href={`/posts/${post.id}`}>
-        <h2 className="text-2xl font-bold text-gray-900 mb-2 hover:text-gray-700">
-          {post.title}
-        </h2>
-      </Link>
+      {isEditing ? (
+        <div className="space-y-4">
+          <div>
+            <input
+              type="text"
+              value={editedTitle}
+              onChange={(e) => setEditedTitle(e.target.value)}
+              className="w-full px-3 py-2 text-2xl font-bold text-gray-900 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent"
+              placeholder="Post title"
+            />
+          </div>
+          <div>
+            <textarea
+              value={editedBody}
+              onChange={(e) => setEditedBody(e.target.value)}
+              rows={4}
+              className="w-full px-3 py-2 text-gray-600 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent"
+              placeholder="Post content"
+            />
+          </div>
+          <div className="flex justify-end space-x-3">
+            <button
+              onClick={() => {
+                setEditedTitle(post.title);
+                setEditedBody(post.body);
+                setIsEditing(false);
+              }}
+              className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+              disabled={isUpdating}
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleUpdate}
+              className="px-4 py-2 text-sm font-medium text-white bg-gray-900 rounded-md hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+              disabled={isUpdating}
+            >
+              {isUpdating ? "Saving..." : "Save"}
+            </button>
+          </div>
+        </div>
+      ) : (
+        <>
+          <Link href={`/posts/${post.id}`}>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2 hover:text-gray-700">
+              {post.title}
+            </h2>
+          </Link>
 
-      <p className="text-gray-600 mb-4 line-clamp-3">{post.body}</p>
+          <p className="text-gray-600 mb-4 line-clamp-3">{post.body}</p>
+        </>
+      )}
 
       <div className="flex items-center space-x-4">
         <button
@@ -180,11 +309,15 @@ export default function PostCard({ post, onLike }) {
 
       {showComments && (
         <div className="mt-4">
-          <CommentSection
-            postId={post.id}
-            comments={comments}
-            setComments={setComments}
-          />
+          {isLoadingComments ? (
+            <p className="text-sm text-gray-500">Loading comments...</p>
+          ) : (
+            <CommentSection
+              postId={post.id}
+              comments={comments}
+              setComments={setComments}
+            />
+          )}
         </div>
       )}
     </article>
