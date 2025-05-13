@@ -6,6 +6,7 @@ import FilterBar from "../components/FilterBar";
 import SearchBar from "../components/SearchBar";
 import CreatePostModal from "../components/CreatePostModal";
 import PostCard from "../components/PostCard";
+import PostSkeleton from "../components/PostSkeleton";
 
 export default function HomePage() {
   const [posts, setPosts] = useState([]);
@@ -14,6 +15,7 @@ export default function HomePage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [user, setUser] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -41,6 +43,7 @@ export default function HomePage() {
   }, []);
 
   const fetchPosts = async () => {
+    setIsLoading(true);
     try {
       const token = localStorage.getItem("token");
       const response = await fetch("/api/posts", {
@@ -52,6 +55,8 @@ export default function HomePage() {
       setFilteredPosts(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error("Error fetching posts:", error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -132,14 +137,32 @@ export default function HomePage() {
         <SearchBar onSearch={setSearchQuery} />
 
         <div className="space-y-8">
-          {filteredPosts.map((post) => (
-            <PostCard
-              key={post.id}
-              post={post}
-              onLike={fetchPosts}
-              currentUser={user}
-            />
-          ))}
+          {isLoading ? (
+            <>
+              <PostSkeleton />
+              <PostSkeleton />
+              <PostSkeleton />
+            </>
+          ) : filteredPosts.length > 0 ? (
+            filteredPosts.map((post) => (
+              <PostCard
+                key={post.id}
+                post={post}
+                onLike={fetchPosts}
+                currentUser={user}
+              />
+            ))
+          ) : (
+            <div className="text-center py-12">
+              <p className="text-gray-500 text-lg">
+                {searchQuery
+                  ? "No posts found matching your search."
+                  : activeFilter === "my-posts"
+                  ? "You haven't created any posts yet."
+                  : "No posts available."}
+              </p>
+            </div>
+          )}
         </div>
       </div>
 
