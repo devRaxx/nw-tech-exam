@@ -11,6 +11,7 @@ A full-stack web application built with FastAPI, PostgreSQL(deployed in [NeonDB]
   - PostgreSQL database with SQLAlchemy ORM
   - Alembic database migrations
   - Environment-based configuration
+  - Data seeding from .csv
 
 - **Frontend (Next.js)**
   - Modern React-based UI
