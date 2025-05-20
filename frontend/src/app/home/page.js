@@ -7,9 +7,9 @@ import SearchBar from "../components/SearchBar";
 import CreatePostModal from "../components/CreatePostModal";
 import PostCard from "../components/PostCard";
 import PostSkeleton from "../components/PostSkeleton";
-import { useAuth } from "@/hooks/useAuth";
-import { usePosts } from "@/hooks/usePosts";
-import { usePostFilters } from "@/hooks/usePostFilters";
+import { useAuth } from "@/app/home/hooks/useAuth";
+import { usePosts } from "@/app/home/hooks/usePosts";
+import { usePostFilters } from "@/app/home/hooks/usePostFilters";
 
 export default function HomePage() {
   const { user } = useAuth();

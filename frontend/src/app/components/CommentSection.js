@@ -135,7 +135,6 @@ const CommentItem = memo(
 
 CommentItem.displayName = "CommentItem";
 
-// Add a helper function to recursively update the comment tree
 function updateCommentTree(comments, updatedComment) {
   return comments.map((comment) => {
     if (comment.id === updatedComment.id) {
