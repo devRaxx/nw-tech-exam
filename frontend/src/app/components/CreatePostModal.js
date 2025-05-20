@@ -38,7 +38,7 @@ export default function CreatePostModal({ isOpen, onClose, onSubmit }) {
     return null;
   }
 
-  if (!isAuthenticated) {
+  if (!user) {
     return (
       <div className="fixed inset-0 bg-white/30 backdrop-blur-sm flex items-center justify-center p-4">
         <div className="bg-white rounded-lg max-w-2xl w-full p-6">

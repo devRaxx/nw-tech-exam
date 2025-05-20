@@ -10,7 +10,7 @@ class Settings(BaseSettings):
     DATABASE_URL: str
 
     # JWT
-    SECRET_KEY: str = "your-secret-key-here"  # Change this in production
+    SECRET_KEY: str = "490ECA5A90D754A0E29F829FB290BD2216B9812E11BE128BE0762CA36D945E94"
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
 
