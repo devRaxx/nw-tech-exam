@@ -33,11 +33,7 @@ export default function CreatePostModal({ isOpen, onClose, onSubmit }) {
     onClose();
   };
 
-  if (!isOpen) {
-    return null;
-  }
-
-  if (!user) {
+  if (!user || !isOpen) {
     return null;
   }
 
