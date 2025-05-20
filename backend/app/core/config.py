@@ -1,5 +1,7 @@
 from pydantic_settings import BaseSettings
+import os
 from typing import Optional
+from dotenv import load_dotenv
 
 class Settings(BaseSettings):
     PROJECT_NAME: str = "Blogsite API"
@@ -10,7 +12,7 @@ class Settings(BaseSettings):
     DATABASE_URL: str
 
     # JWT
-    SECRET_KEY: str = "490ECA5A90D754A0E29F829FB290BD2216B9812E11BE128BE0762CA36D945E94"
+    SECRET_KEY: str = os.getenv("SECRET_KEY")
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
 
