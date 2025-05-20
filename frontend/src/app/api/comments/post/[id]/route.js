@@ -2,7 +2,8 @@ import { NextResponse } from "next/server";
 
 export async function GET(request, { params }) {
   try {
-    const { id: postId } = params;
+    const resolvedParams = await params;
+    const { id: postId } = resolvedParams;
     const token = request.headers.get("authorization")?.split(" ")[1];
 
     const response = await fetch(
@@ -32,7 +33,8 @@ export async function GET(request, { params }) {
 
 export async function POST(request, { params }) {
   try {
-    const { id: postId } = params;
+    const resolvedParams = await params;
+    const { id: postId } = resolvedParams;
     const token = request.headers.get("authorization")?.split(" ")[1];
 
     if (!token) {
