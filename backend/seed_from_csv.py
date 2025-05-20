@@ -1,6 +1,6 @@
-import csv
 import os
 import sys
+from faker import Faker
 from sqlalchemy.orm import Session
 from app.db.session import SessionLocal
 from app.models.user import User
@@ -15,93 +15,113 @@ from sqlalchemy.exc import IntegrityError
 import logging
 logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
 
-USERS_CSV = os.path.join(os.path.dirname(__file__), 'users.csv')
-POSTS_CSV = os.path.join(os.path.dirname(__file__), 'posts.csv')
+fake = Faker()
 
-REQUIRED_USER_FIELDS = {'username', 'password'}
-REQUIRED_POST_FIELDS = {'title', 'body', 'author_id'}
+NUM_USERS = 1
+NUM_POSTS_PER_USER = 1
 
+def seed_users(db: Session, num_users: int = NUM_USERS):
+    users = []
+    try:
+        user_schema = UserCreate(
+            username="fromSeeder",
+            password="123123123aA",
+        )
+        hashed_password = get_password_hash(user_schema.password)
+        user = User(
+            username=user_schema.username,
+            hashed_password=hashed_password,
+            is_active=True,
+            is_superuser=False
+        )
+        db.add(user)
+        users.append(user)
+    except Exception as e:
+        logging.warning(f"Error creating initial user: {e}")
 
-def seed_users(db: Session, csv_path: str):
-    with open(csv_path, newline='', encoding='utf-8') as csvfile:
-        reader = csv.DictReader(csvfile)
-        for row in reader:
-            user_data = {
-                'username': row.get('username'),
-                'password': row.get('password'),
-                'is_active': row.get('is_active', 'True').lower() in ('true', '1', 'yes'),
-                'is_superuser': row.get('is_superuser', 'False').lower() in ('true', '1', 'yes'),
-            }
-            if not all(user_data[k] for k in REQUIRED_USER_FIELDS):
-                logging.warning(f"Skipping user due to missing required fields: {user_data}")
-                continue
-            try:
-                user_schema = UserCreate(
-                    username=user_data['username'],
-                    password=user_data['password'],
-                )
-            except Exception as e:
-                logging.warning(f"Skipping user due to validation error: {user_data} | Error: {e}")
-                continue
+    for _ in range(num_users - 1):
+        username = fake.user_name()
+        password = fake.password(length=8)
+        
+        try:
+            user_schema = UserCreate(
+                username=username,
+                password=password,
+            )
             hashed_password = get_password_hash(user_schema.password)
             user = User(
                 username=user_schema.username,
                 hashed_password=hashed_password,
-                is_active=user_data['is_active'],
-                is_superuser=user_data['is_superuser']
+                is_active=True,
+                is_superuser=False
             )
             db.add(user)
-        try:
-            db.commit()
-            logging.info("User seeding complete.")
-        except IntegrityError as e:
-            db.rollback()
-            logging.error(f"Database error during user seeding: {e}")
+            users.append(user)
+        except Exception as e:
+            logging.warning(f"Skipping user due to error: {e}")
+            continue
+    
+    try:
+        db.commit()
+        logging.info(f"Successfully seeded {len(users)} users.")
+        return users
+    except IntegrityError as e:
+        db.rollback()
+        logging.error(f"Database error during user seeding: {e}")
+        return []
 
-def seed_posts(db: Session, csv_path: str):
-    with open(csv_path, newline='', encoding='utf-8') as csvfile:
-        reader = csv.DictReader(csvfile)
-        for row in reader:
-            post_data = {
-                'title': row.get('title'),
-                'body': row.get('body'),
-                'author_id': row.get('author_id'),
-            }
-            if not all(post_data[k] for k in REQUIRED_POST_FIELDS):
-                logging.warning(f"Skipping post due to missing required fields: {post_data}")
-                continue
-            author = db.query(User).filter(User.id == post_data['author_id']).first()
-            if not author:
-                logging.warning(f"Skipping post because author_id {post_data['author_id']} does not exist: {post_data}")
-                continue
-            try:
-                post_schema = PostCreate(
-                    title=post_data['title'],
-                    body=post_data['body'],
-                )
-            except Exception as e:
-                logging.warning(f"Skipping post due to validation error: {post_data} | Error: {e}")
-                continue
+def seed_posts(db: Session, users: list[User], posts_per_user: int = NUM_POSTS_PER_USER):
+    total_posts = 0
+    if users:
+        try:
+            post_schema = PostCreate(
+                title="Hello Seeders",
+                body="This is Seed's first post!",
+            )
             post = Post(
                 title=post_schema.title,
                 body=post_schema.body,
-                author_id=author.id
+                author_id=users[0].id
             )
             db.add(post)
-        try:
-            db.commit()
-            logging.info("Post seeding complete.")
-        except IntegrityError as e:
-            db.rollback()
-            logging.error(f"Database error during post seeding: {e}")
+            total_posts += 1
+        except Exception as e:
+            logging.warning(f"Error creating initial post: {e}")
+            
+    for user in users:
+        for _ in range(posts_per_user - (1 if user == users[0] else 0)):
+            try:
+                post_schema = PostCreate(
+                    title=fake.sentence(nb_words=3).rstrip('.'),
+                    body=fake.paragraph(),
+                )
+                post = Post(
+                    title=post_schema.title,
+                    body=post_schema.body,
+                    author_id=user.id
+                )
+                db.add(post)
+                total_posts += 1
+            except Exception as e:
+                logging.warning(f"Skipping post due to error: {e}")
+                continue
+    
+    try:
+        db.commit()
+        logging.info(f"Successfully seeded {total_posts} posts.")
+    except IntegrityError as e:
+        db.rollback()
+        logging.error(f"Database error during post seeding: {e}")
 
 def main():
     db = SessionLocal()
     try:
-        logging.info("Seeding users...")
-        seed_users(db, USERS_CSV)
-        logging.info("Seeding posts...")
-        seed_posts(db, POSTS_CSV)
+        logging.info("Starting database seeding...")
+        users = seed_users(db)
+        if users:
+            logging.info("Seeding posts...")
+            seed_posts(db, users)
+        logging.info("Database seeding completed.")
     finally:
         db.close()
 
