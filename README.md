@@ -11,7 +11,7 @@ A full-stack web application built with FastAPI, PostgreSQL(deployed in [NeonDB]
   - PostgreSQL database with SQLAlchemy ORM
   - Alembic database migrations
   - Environment-based configuration
-  - Data seeding from .csv
+  - Data seeding
 
 - **Frontend (Next.js)**
   - Modern React-based UI
@@ -48,12 +48,14 @@ A full-stack web application built with FastAPI, PostgreSQL(deployed in [NeonDB]
 ## 🔧 Installation
 
 1. Backend Setup
-
+to build the docker container
 ```bash
 cd backend
-python -m venv .venv
-source .venv/bin/activate  # On Windows: .venv\Scripts\activate
-pip install -r requirements.txt
+docker build -t nw-tech-exam .
+```
+to run the docker container
+```bash
+docker run --name nw-tech-exam -p 8000:8000 nw-tech-exam
 ```
 
 2. Frontend Setup
@@ -101,17 +103,9 @@ To seed the database with initial data:
    - Ensure your CSV files have the correct column headers matching your database schema
 
 2. Run the seeding script:
-
+make sure docker is running
 ```bash
-cd backend
-# Activate virtual environment if not already activated
-source .venv/bin/activate  # On Windows: .venv\Scripts\activate
-
-# Install requirements if not already installed
-pip install -r requirements.txt
-
-# Run the seeding script
-python seed_from_csv.py
+docker container exec nw-tech-exam sh -c "python seed_from_csv.py"
 ```
 
 Note: Make sure your database is properly migrated before seeding data.
